@@ -9,6 +9,7 @@ import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
+import org.aspectj.lang.annotation.Pointcut;
 
 import com.themoffster.aop.annotations.LoggingAspectAfter;
 import com.themoffster.aop.annotations.LoggingAspectAfterReturning;
@@ -27,12 +28,25 @@ public class Interceptor {
   private static final Logger LOGGER = Logger.getLogger(Interceptor.class);
 
   /**
-   * Allows for a method call which has the {@link LoggingAspectBefore} annotation to be
-   * intercepted. There is no other limitation on the join point other than it has this annotation.
+   * A designated method for essentially establishing the rules for the pointcut - in this case a
+   * method annotated with the {@link LoggingAspectBefore} annotation.<br>
+   * You could just specify the pointcut on the intercepted method - for example
+   * {@link #before(JoinPoint joinpoint)} in this class, however in cases where there are lots of
+   * possible permutations, it can be easier and more readable to have the logic in standalone @PointCut
+   * annotated method which can then be referenced in the intercepted method.
+   * 
+   */
+  @Pointcut("@annotation(com.themoffster.aop.annotations.LoggingAspectBefore)")
+  private void beforeAnnotation() {}
+
+  /**
+   * Allows for an intercepted method call which uses the method {@link #beforeAnnotation()} as the
+   * determining logic. There is no other limitation on the join point other than it has this
+   * annotation.
    * 
    * @param joinPoint the intercepted method call
    */
-  @Before("@annotation(com.themoffster.aop.annotations.LoggingAspectBefore)")
+  @Before("beforeAnnotation()")
   public void before(JoinPoint joinPoint) {
     LOGGER.info("Interceptor >> " + joinPoint.getSignature().getName() + "()");
   }
